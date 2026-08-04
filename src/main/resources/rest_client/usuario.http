@@ -1,0 +1,33 @@
+http://localhost:8080/starapp/usuarios HTTP/1.1
+
+### GET usuarios vv
+
+GET http://localhost:3306/starapp/usuarios/1 HTTP/1.1
+
+###
+
+POST http://localhost:3306/starapp/usuarios HTTP/1.1
+content-type: application/json
+
+{
+    "id": "3",
+    "login": "elle",
+    "senha": "123456",
+    "tipo_usuario": "USER"
+}
+
+###
+
+DELETE http://localhost:3306/starapp/usuarios/3 HTTP/1.1
+
+###
+
+PUT http://localhost:3306/starapp/usuarios HTTP/1.1
+content-type: application/json
+
+{
+    "id": "3",
+    "login": "elle",
+    "senha": "123456",
+    "tipo_usuario": "USER"
+}
