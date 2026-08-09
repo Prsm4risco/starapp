@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +26,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/comentarios")
+@CrossOrigin(origins = "http://localhost:8100")
 @Tag(name = "Comentário")
 public class ComentarioController {
 
@@ -44,6 +46,13 @@ public class ComentarioController {
     public ResponseEntity<ComentarioResponseDTO> buscarPorId(@PathVariable Long id) {
         ComentarioResponseDTO comentarioResponseDTO = comentarioService.buscarPorId(id);
         return ResponseEntity.ok(comentarioResponseDTO);
+    }
+
+    @GetMapping("/{id}/comentarios")
+    @Operation(summary = "Buscar comentário por ID da postagem")
+public ResponseEntity<List<ComentarioResponseDTO>> listarComentarios(@PathVariable Long id) {
+        List<ComentarioResponseDTO> comentarios = comentarioService.listarPorPostagem(id);
+        return ResponseEntity.ok(comentarios);
     }
 
     @PostMapping

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cefetmg.starapp.dto.AutenticacaoRequestDTO;
 import com.cefetmg.starapp.dto.UsuarioRequestDTO;
 import com.cefetmg.starapp.dto.UsuarioResponseDTO;
 import com.cefetmg.starapp.dto.UsuarioSenhaRequestDTO;
@@ -26,6 +28,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/usuarios")
+@CrossOrigin(origins = "http://localhost:8100")
 @Tag(name = "Usuário")
 public class UsuarioController {
 
@@ -45,6 +48,13 @@ public class UsuarioController {
     @Operation(summary = "Buscar usuário por ID")
     public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
         UsuarioResponseDTO usuarioResponseDTO = usuarioService.buscarPorId(id);
+        return ResponseEntity.ok(usuarioResponseDTO);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "Buscar usuário por Login/Senha")
+    public ResponseEntity<UsuarioResponseDTO> buscarLoginSenha(@RequestBody AutenticacaoRequestDTO dados) {
+        UsuarioResponseDTO usuarioResponseDTO = usuarioService.buscarLoginSenha(dados.getLogin(), dados.getSenha());
         return ResponseEntity.ok(usuarioResponseDTO);
     }
 

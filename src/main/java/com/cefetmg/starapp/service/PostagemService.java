@@ -29,7 +29,7 @@ public class PostagemService {
     @Transactional(readOnly = true)
     public PostagemResponseDTO buscarPorId(Long id) {
         Postagem Postagem = PostagemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado. Id: " + id));
 
         return new PostagemResponseDTO(Postagem);
     }
@@ -59,7 +59,7 @@ public class PostagemService {
     @Transactional
     public void excluir(Long id) {
         if (!PostagemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Usuário não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Postagem não encontrada com ID: " + id);
         }
 
         PostagemRepository.deleteById(id);

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,7 +26,8 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/Postagens")
-@Tag(name = "Usuário")
+@CrossOrigin(origins = "http://localhost:8100")
+@Tag(name = "postagem")
 public class PostagemController {
 
 
@@ -33,21 +35,21 @@ public class PostagemController {
     private PostagemService PostagemService;
 
     @GetMapping
-    @Operation(summary = "Listar usuários")
+    @Operation(summary = "Listar postagens")
     public ResponseEntity<List<PostagemResponseDTO>> listar() {
         List<PostagemResponseDTO> Postagems = PostagemService.listar();
         return ResponseEntity.ok(Postagems);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar usuário por ID")
+    @Operation(summary = "Buscar postagem por ID")
     public ResponseEntity<PostagemResponseDTO> buscarPorId(@PathVariable Long id) {
         PostagemResponseDTO PostagemResponseDTO = PostagemService.buscarPorId(id);
         return ResponseEntity.ok(PostagemResponseDTO);
     }
 
     @PostMapping
-    @Operation(summary = "Cadastrar usuário")
+    @Operation(summary = "Cadastrar postagem")
     public ResponseEntity<PostagemResponseDTO> inserir(@Valid @RequestBody PostagemRequestDTO PostagemRequestDTO) {
         PostagemResponseDTO PostagemResponseDTO = PostagemService.inserir(PostagemRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(PostagemResponseDTO);
@@ -55,7 +57,7 @@ public class PostagemController {
 
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir usuário")
+    @Operation(summary = "Excluir postagem")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         PostagemService.excluir(id);
         return ResponseEntity.noContent().build();

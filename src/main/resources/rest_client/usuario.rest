@@ -2,7 +2,7 @@ http://localhost:8080/starapp/usuarios HTTP/1.1
 
 ###
 
-GET http://localhost:8080/starapp/usuarios/1 HTTP/1.1
+GET http://localhost:3306/starapp/usuarios/1 HTTP/1.1
 
 ###
 

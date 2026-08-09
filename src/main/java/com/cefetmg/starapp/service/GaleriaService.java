@@ -28,7 +28,7 @@ public class GaleriaService {
     @Transactional(readOnly = true)
     public GaleriaResponseDTO buscarPorId(Long id) {
         Galeria Galeria = GaleriaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado. Id: " + id));
 
         return new GaleriaResponseDTO(Galeria);
     }

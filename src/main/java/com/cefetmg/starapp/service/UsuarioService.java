@@ -31,7 +31,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioResponseDTO buscarPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado. Id: " + id));
 
         return new UsuarioResponseDTO(usuario);
     }
@@ -77,5 +77,13 @@ public class UsuarioService {
     public Boolean existeLogin(String login) {
         return usuarioRepository.existsByLogin(login);
     }    
+    
+    @Transactional
+    public UsuarioResponseDTO buscarLoginSenha(String login, String senha) {
+        Usuario usuario = usuarioRepository.findByLoginAndSenha(login, senha)
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado :("));
+
+        return new UsuarioResponseDTO(usuario);
+    }
 }
 

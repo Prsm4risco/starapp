@@ -31,6 +31,11 @@ public class ComentarioService {
 
         return new ComentarioResponseDTO(comentario);
     }
+    public List<ComentarioResponseDTO> listarPorPostagem(Long postagemId) {
+        List<Comentario> comentarios = comentarioRepository.findByPostagemId(postagemId);
+        return comentarios.stream().map(ComentarioResponseDTO::new).toList();
+    }
+
 
     @Transactional
     public ComentarioResponseDTO inserir(ComentarioRequestDTO dto) {
@@ -48,7 +53,7 @@ public class ComentarioService {
 
         Comentario comentario = comentarioRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Comentario não encontrad. Id: " + id));
+                        new ResourceNotFoundException("Não encontrado. Id: " + id));
 
 
         return new ComentarioResponseDTO(comentarioRepository.save(comentario));
