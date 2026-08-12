@@ -18,21 +18,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cefetmg.starapp.dto.ComentarioRequestDTO;
 import com.cefetmg.starapp.dto.ComentarioResponseDTO;
+import com.cefetmg.starapp.dto.UsuarioResponseDTO;
+import com.cefetmg.starapp.entity.Postagem;
+import com.cefetmg.starapp.entity.Usuario;
+import com.cefetmg.starapp.service.PostagemService;
 import com.cefetmg.starapp.service.ComentarioService;
+import com.cefetmg.starapp.service.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/comentarios")
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = "http://localhost:8100", allowCredentials = "true")
 @Tag(name = "Comentário")
 public class ComentarioController {
 
 
     @Autowired
+    private PostagemService postagemService;
+    @Autowired
     private ComentarioService comentarioService;
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping
     @Operation(summary = "Listar comentários")
@@ -48,7 +58,7 @@ public class ComentarioController {
         return ResponseEntity.ok(comentarioResponseDTO);
     }
 
-    @GetMapping("/{id}/comentarios")
+    @GetMapping("/{id}/Postagens")
     @Operation(summary = "Buscar comentário por ID da postagem")
 public ResponseEntity<List<ComentarioResponseDTO>> listarComentarios(@PathVariable Long id) {
         List<ComentarioResponseDTO> comentarios = comentarioService.listarPorPostagem(id);
@@ -56,8 +66,19 @@ public ResponseEntity<List<ComentarioResponseDTO>> listarComentarios(@PathVariab
     }
 
     @PostMapping
-    @Operation(summary = "Cadastrar comentário")
-    public ResponseEntity<ComentarioResponseDTO> inserir(@Valid @RequestBody ComentarioRequestDTO comentarioRequestDTO) {
+    @Operation(summary = "Salvar comentário")
+    public ResponseEntity<ComentarioResponseDTO> inserir(@Valid @RequestBody ComentarioRequestDTO comentarioRequestDTO, HttpSession sessao) {
+        Long usuarioId = (Long) sessao.getAttribute("usuarioId");
+        if (usuarioId == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Usuario usuario = usuarioService.buscarPorIdEntity(usuarioId);
+        Postagem postagem = postagemService.buscarPorIdEntity(comentarioRequestDTO.getPostagem().getId());
+        if (usuario == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        comentarioRequestDTO.setUsuario(usuario);
+        comentarioRequestDTO.setPostagem(postagem);
         ComentarioResponseDTO comentarioResponseDTO = comentarioService.inserir(comentarioRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(comentarioResponseDTO);
     }

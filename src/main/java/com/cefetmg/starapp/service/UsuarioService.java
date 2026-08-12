@@ -85,5 +85,20 @@ public class UsuarioService {
 
         return new UsuarioResponseDTO(usuario);
     }
-}
+    
+    @Transactional
+    public UsuarioResponseDTO buscarLogin(String login) {
+        Usuario usuario = usuarioRepository.findByLogin(login)
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado :("));
 
+        return new UsuarioResponseDTO(usuario);
+    }
+    
+    @Transactional
+    public Usuario buscarPorIdEntity(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElse(null);
+
+        return usuario;
+    }
+}

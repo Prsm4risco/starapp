@@ -22,11 +22,12 @@ import com.cefetmg.starapp.service.PostagemService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/Postagens")
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = "http://localhost:8100", allowCredentials = "true")
 @Tag(name = "postagem")
 public class PostagemController {
 
@@ -50,8 +51,15 @@ public class PostagemController {
 
     @PostMapping
     @Operation(summary = "Cadastrar postagem")
-    public ResponseEntity<PostagemResponseDTO> inserir(@Valid @RequestBody PostagemRequestDTO PostagemRequestDTO) {
-        PostagemResponseDTO PostagemResponseDTO = PostagemService.inserir(PostagemRequestDTO);
+    public ResponseEntity<PostagemResponseDTO> inserir(@Valid @RequestBody PostagemRequestDTO requestDTO, HttpSession sessao) {
+        Long usuarioId = (Long) sessao.getAttribute("usuarioId");
+    if (usuarioId == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    PostagemResponseDTO PostagemResponseDTO =
+            PostagemService.inserir(requestDTO, usuarioId);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(PostagemResponseDTO);
     }
 

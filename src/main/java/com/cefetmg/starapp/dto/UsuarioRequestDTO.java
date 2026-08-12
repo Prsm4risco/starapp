@@ -18,7 +18,6 @@ public class UsuarioRequestDTO {
     @NotNull(message = "O campo senha é obrigatório")
     private String senha;
     
-    @NotBlank(message = "O campo login é obrigatório")
     private TipoUsuario tipoUsuario;
 
 

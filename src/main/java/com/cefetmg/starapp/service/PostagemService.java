@@ -9,9 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cefetmg.starapp.dto.PostagemRequestDTO;
 import com.cefetmg.starapp.dto.PostagemResponseDTO;
 import com.cefetmg.starapp.entity.Postagem;
+import com.cefetmg.starapp.entity.Usuario;
 import com.cefetmg.starapp.exception.BusinessException;
 import com.cefetmg.starapp.exception.ResourceNotFoundException;
 import com.cefetmg.starapp.repository.PostagemRepository;
+import com.cefetmg.starapp.repository.UsuarioRepository;
 
 @Service
 
@@ -19,6 +21,8 @@ public class PostagemService {
 
     @Autowired
     private PostagemRepository PostagemRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
     public List<PostagemResponseDTO> listar() {
@@ -35,11 +39,14 @@ public class PostagemService {
     }
 
     @Transactional
-    public PostagemResponseDTO inserir(PostagemRequestDTO dto) {
+    public PostagemResponseDTO inserir(PostagemRequestDTO dto, Long usuarioId) {
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Postagem Postagem = new Postagem();
         Postagem.setConteudo(dto.getConteudo());
-        Postagem.setUsuario(dto.getUsuario());
+        Postagem.setUsuario(usuario);
 
         return new PostagemResponseDTO(PostagemRepository.save(Postagem));
     }
@@ -65,4 +72,12 @@ public class PostagemService {
         PostagemRepository.deleteById(id);
     }
       
+    
+    @Transactional
+    public Postagem buscarPorIdEntity(Long id) {
+        Postagem postagem = PostagemRepository.findById(id)
+                .orElse(null);
+
+        return postagem;
+    }
 }

@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/galeria")
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = "http://localhost:8100", allowCredentials = "true")
 @Tag(name = "Galeria")
 public class GaleriaController {
 

@@ -11,9 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PostagemRequestDTO {
 
-    @NotBlank(message = "O campo login é obrigatório")
+    @NotBlank(message = "O campo conteudo é obrigatório")
     private String conteudo;
 
-    @NotNull(message = "O campo perfil é obrigatório")
     private Usuario usuario;
 }
