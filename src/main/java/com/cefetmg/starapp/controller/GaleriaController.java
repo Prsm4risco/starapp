@@ -1,5 +1,6 @@
 package com.cefetmg.starapp.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,17 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.cefetmg.starapp.dto.GaleriaRequestDTO;
-import com.cefetmg.starapp.dto.GaleriaResponseDTO;
 import com.cefetmg.starapp.service.GaleriaService;
+import com.cefetmg.starapp.entity.Galeria;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,36 +28,36 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "http://localhost:8100", allowCredentials = "true")
 @Tag(name = "Galeria")
 public class GaleriaController {
-
     @Autowired
     private GaleriaService GaleriaService;
 
+    @PostMapping
+    public ResponseEntity<Galeria> upload(@RequestParam("galeria") MultipartFile Galeria) throws IOException {
+        Galeria resultado = GaleriaService.salvar(Galeria);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
+    }
+
     @GetMapping
-    @Operation(summary = "Listar imagens")
-    public ResponseEntity<List<GaleriaResponseDTO>> listar() {
-        List<GaleriaResponseDTO> imagens = GaleriaService.listar();
-        return ResponseEntity.ok(imagens);
+    public ResponseEntity<List<Galeria>> listar() {
+        List<Galeria> Galerias = GaleriaService.listar();
+        return ResponseEntity.ok(Galerias);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar imagem por ID")
-    public ResponseEntity<GaleriaResponseDTO> buscarPorId(@PathVariable Long id) {
-        GaleriaResponseDTO GaleriaResponseDTO = GaleriaService.buscarPorId(id);
-        return ResponseEntity.ok(GaleriaResponseDTO);
-    }
-
-    @PostMapping
-    @Operation(summary = "Cadastrar imagem")
-    public ResponseEntity<GaleriaResponseDTO> inserir(@Valid @RequestBody GaleriaRequestDTO GaleriaRequestDTO) {
-        GaleriaResponseDTO GaleriaResponseDTO = GaleriaService.inserir(GaleriaRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(GaleriaResponseDTO);
+    public ResponseEntity<Galeria> buscarPorId(@PathVariable Long id) {
+        Galeria Galeria = GaleriaService.buscarPorId(id);
+        if (Galeria == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(Galeria);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir imagem")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        GaleriaService.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable Long id) throws IOException {
+        boolean excluido = GaleriaService.excluir(id);
+        if (!excluido) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.noContent().build();
     }
-
 }

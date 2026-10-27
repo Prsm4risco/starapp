@@ -9,14 +9,24 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cefetmg.starapp.dto.ComentarioRequestDTO;
 import com.cefetmg.starapp.dto.ComentarioResponseDTO;
 import com.cefetmg.starapp.entity.Comentario;
+import com.cefetmg.starapp.entity.Usuario;
+import com.cefetmg.starapp.entity.Postagem;
 import com.cefetmg.starapp.exception.BusinessException;
 import com.cefetmg.starapp.exception.ResourceNotFoundException;
 import com.cefetmg.starapp.repository.ComentarioRepository;
+import com.cefetmg.starapp.repository.PostagemRepository;
+import com.cefetmg.starapp.repository.UsuarioRepository;
 @Service
 public class ComentarioService {
 
     @Autowired
     private ComentarioRepository comentarioRepository;
+
+    @Autowired
+    private PostagemRepository postagemRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
     public List<ComentarioResponseDTO> listar() {
@@ -36,17 +46,27 @@ public class ComentarioService {
         return comentarios.stream().map(ComentarioResponseDTO::new).toList();
     }
 
+@Transactional
+public ComentarioResponseDTO inserir(
+        ComentarioRequestDTO dto,
+        Long usuarioId) {
 
-    @Transactional
-    public ComentarioResponseDTO inserir(ComentarioRequestDTO dto) {
+    Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Usuário não encontrado."
+                )
+            );
 
-        Comentario comentario = new Comentario();
-        comentario.setConteudo(dto.getConteudo());
-        comentario.setUsuario(dto.getUsuario());
-        comentario.setPostagem(dto.getPostagem());
+    Comentario comentario = new Comentario();
+    comentario.setConteudo(dto.getConteudo());
+    comentario.setUsuario(usuario);
+    comentario.setPostagem(dto.getPostagem());
 
-        return new ComentarioResponseDTO(comentarioRepository.save(comentario));
-    }
+    return new ComentarioResponseDTO(
+            comentarioRepository.save(comentario)
+    );
+}
 
     @Transactional
     public ComentarioResponseDTO atualizar(Long id, ComentarioRequestDTO dto) {

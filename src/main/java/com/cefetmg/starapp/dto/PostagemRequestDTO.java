@@ -13,6 +13,4 @@ public class PostagemRequestDTO {
 
     @NotBlank(message = "O campo conteudo é obrigatório")
     private String conteudo;
-
-    private Usuario usuario;
 }

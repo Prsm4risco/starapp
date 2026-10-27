@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,18 +18,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cefetmg.starapp.dto.AutenticacaoRequestDTO;
+import com.cefetmg.starapp.dto.AutenticacaoResponseDTO;
 import com.cefetmg.starapp.dto.UsuarioRequestDTO;
 import com.cefetmg.starapp.dto.UsuarioResponseDTO;
 import com.cefetmg.starapp.dto.UsuarioSenhaRequestDTO;
-import com.cefetmg.starapp.entity.Usuario;
+import com.cefetmg.starapp.service.AutenticacaoService;
 import com.cefetmg.starapp.service.UsuarioService;
+import com.cefetmg.starapp.exception.*;
+import com.cefetmg.starapp.repository.UsuarioRepository;
+import com.cefetmg.starapp.entity.Usuario;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @RestController
@@ -38,7 +39,13 @@ import jakarta.validation.Valid;
 public class UsuarioController {
 
     @Autowired
+    private UsuarioRepository usuarioRepository;
+    
+    @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private AutenticacaoService autenticacaoService;
 
     @GetMapping
     @Operation(summary = "Listar usuários")
@@ -55,15 +62,11 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "autenticar")
-    public ResponseEntity<UsuarioResponseDTO> buscarLoginSenha(@RequestBody AutenticacaoRequestDTO dados,
-            HttpSession sessao) {
-        UsuarioResponseDTO usuarioResponseDTO = usuarioService.buscarLoginSenha(dados.getLogin(), dados.getSenha());
-        if (usuarioResponseDTO == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        sessao.setAttribute("usuarioId", usuarioResponseDTO.getId());
-        return ResponseEntity.ok(usuarioResponseDTO);
+    public ResponseEntity<AutenticacaoResponseDTO> login(
+            @Valid @RequestBody AutenticacaoRequestDTO request) {
+        AutenticacaoResponseDTO response =
+                autenticacaoService.autenticar(request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/login")
@@ -75,17 +78,7 @@ public class UsuarioController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpSession sessao, HttpServletRequest request, HttpServletResponse response) {
-        sessao = request.getSession(false);
-        if (sessao != null) {
-            sessao.invalidate();
-        }
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-
-        response.addCookie(cookie);
+    public ResponseEntity<Void> logout() {
         return ResponseEntity.noContent().build();
     }
 
@@ -117,12 +110,17 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.existeLogin(login));
     }
 @GetMapping("/quemLogado")
-public ResponseEntity<UsuarioResponseDTO> usuarioLogado(HttpSession sessao) {
-    Long usuarioId = (Long) sessao.getAttribute("usuarioId");
-    if (usuarioId == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-    UsuarioResponseDTO usuario = usuarioService.buscarPorId(usuarioId);
-    return ResponseEntity.ok(usuario);
+public ResponseEntity<UsuarioResponseDTO> usuarioLogado(Authentication authentication) {
+
+    String login = authentication.getName();
+
+    Usuario usuario = usuarioRepository.findByLogin(login)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Usuário não encontrado."
+                )
+            );
+    UsuarioResponseDTO usuarioresponse = usuarioService.buscarPorId(usuario.getId());
+    return ResponseEntity.ok(usuarioresponse);
 }
 }

@@ -5,6 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +27,9 @@ import com.cefetmg.starapp.entity.Usuario;
 import com.cefetmg.starapp.service.PostagemService;
 import com.cefetmg.starapp.service.ComentarioService;
 import com.cefetmg.starapp.service.UsuarioService;
+import com.cefetmg.starapp.repository.UsuarioRepository;
+import com.cefetmg.starapp.repository.PostagemRepository;
+import com.cefetmg.starapp.exception.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,6 +49,10 @@ public class ComentarioController {
     private ComentarioService comentarioService;
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PostagemRepository postagemRepository;
 
     @GetMapping
     @Operation(summary = "Listar comentários")
@@ -65,23 +75,35 @@ public ResponseEntity<List<ComentarioResponseDTO>> listarComentarios(@PathVariab
         return ResponseEntity.ok(comentarios);
     }
 
-    @PostMapping
-    @Operation(summary = "Salvar comentário")
-    public ResponseEntity<ComentarioResponseDTO> inserir(@Valid @RequestBody ComentarioRequestDTO comentarioRequestDTO, HttpSession sessao) {
-        Long usuarioId = (Long) sessao.getAttribute("usuarioId");
-        if (usuarioId == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        Usuario usuario = usuarioService.buscarPorIdEntity(usuarioId);
-        Postagem postagem = postagemService.buscarPorIdEntity(comentarioRequestDTO.getPostagem().getId());
-        if (usuario == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        comentarioRequestDTO.setUsuario(usuario);
-        comentarioRequestDTO.setPostagem(postagem);
-        ComentarioResponseDTO comentarioResponseDTO = comentarioService.inserir(comentarioRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(comentarioResponseDTO);
-    }
+@PostMapping("/{id}")
+@Operation(summary = "Salvar comentário")
+public ResponseEntity<ComentarioResponseDTO> inserir(@PathVariable Long id,
+        @Valid @RequestBody ComentarioRequestDTO requestDTO,
+        Authentication authentication) {
+
+    String login = authentication.getName();
+    
+    Postagem post = postagemRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Postagem não encontrada."
+                )
+            );
+
+    Usuario usuario = usuarioRepository.findByLogin(login)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(
+                    "Usuário não encontrado."
+                )
+            );
+            requestDTO.setPostagem(post);
+
+    ComentarioResponseDTO comentarioResponseDTO =
+            comentarioService.inserir(requestDTO, usuario.getId());
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(comentarioResponseDTO);
+}
 
 
     @DeleteMapping("/{id}")

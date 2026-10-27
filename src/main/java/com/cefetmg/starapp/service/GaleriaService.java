@@ -1,13 +1,19 @@
 package com.cefetmg.starapp.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.cefetmg.starapp.dto.GaleriaRequestDTO;
-import com.cefetmg.starapp.dto.GaleriaResponseDTO;
+
 import com.cefetmg.starapp.entity.Galeria;
 import com.cefetmg.starapp.exception.BusinessException;
 import com.cefetmg.starapp.exception.ResourceNotFoundException;
@@ -19,45 +25,66 @@ public class GaleriaService {
     @Autowired
     private GaleriaRepository GaleriaRepository;
 
-    @Transactional(readOnly = true)
-    public List<GaleriaResponseDTO> listar() {
-        List<Galeria> imagens = GaleriaRepository.findAll();
-        return imagens.stream().map(GaleriaResponseDTO::new).toList();
-    }
+    @Value("${app.upload.dir}")
+    private String diretorioUpload;
 
-    @Transactional(readOnly = true)
-    public GaleriaResponseDTO buscarPorId(Long id) {
-        Galeria Galeria = GaleriaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Não encontrado. Id: " + id));
+    @Value("${app.upload.url}")
+    private String urlGaleria;   
+    
+    public Galeria salvar(MultipartFile Galeria) throws IOException {
 
-        return new GaleriaResponseDTO(Galeria);
-    }
+        Path diretorio = Paths.get(diretorioUpload);
 
-    @Transactional
-    public GaleriaResponseDTO inserir(GaleriaRequestDTO dto) {
-
-        Galeria Galeria = new Galeria();
-        Galeria.setImgLink(dto.getImgLink());
-
-        return new GaleriaResponseDTO(GaleriaRepository.save(Galeria));
-    }
-
-    @Transactional
-    public GaleriaResponseDTO atualizar(Long id, GaleriaRequestDTO dto) {
-
-        Galeria Galeria = GaleriaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Imagem não encontrada. Id: " + id));
-
-        return new GaleriaResponseDTO(GaleriaRepository.save(Galeria));
-    }
-
-    @Transactional
-    public void excluir(Long id) {
-        if (!GaleriaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Usuário não encontrado com ID: " + id);
+        if (!Files.exists(diretorio)) {
+            Files.createDirectories(diretorio);
         }
 
-        GaleriaRepository.deleteById(id);
+        String nomeOriginal = Galeria.getOriginalFilename();
+
+        String extensao = "";
+
+        if (nomeOriginal != null && nomeOriginal.contains(".")) {
+            extensao = nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
+        }
+
+        String nomeArmazenado = UUID.randomUUID().toString() + extensao;
+
+        Path destino = diretorio.resolve(nomeArmazenado);
+
+        Files.copy(Galeria.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+        Galeria entidade = new Galeria();
+
+        entidade.setNomeOriginal(nomeOriginal);
+        entidade.setNomeArmazenado(nomeArmazenado);
+        entidade.setTipo(Galeria.getContentType());
+        entidade.setTamanho(Galeria.getSize());
+        entidade.setCaminho(destino.toString());
+        entidade.setUrl(urlGaleria + nomeArmazenado);
+
+        return GaleriaRepository.save(entidade);
     }
 
+    public List<Galeria> listar() {
+        return GaleriaRepository.findAll();
+    }
+
+    public Galeria buscarPorId(Long id) {
+        return GaleriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Galeria não encontrado."));
+    }
+
+    public boolean excluir(Long id) throws IOException {
+
+        Galeria Galeria = GaleriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Galeria não encontrado."));
+
+        if (Galeria == null) {
+            return false;
+        }
+
+        Path caminhoGaleria = Paths.get(Galeria.getCaminho());
+        Files.deleteIfExists(caminhoGaleria);
+        GaleriaRepository.delete(Galeria);
+
+        return true;
+    }
 }

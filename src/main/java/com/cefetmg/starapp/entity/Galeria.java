@@ -21,7 +21,22 @@ public class Galeria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String nomeOriginal;
+
+    @Column(nullable = false)
+    private String nomeArmazenado;
+
+    @Column(nullable = false)
+    private String tipo;
+
+    @Column(nullable = false)
+    private Long tamanho;
+
+    @Column(nullable = false)
+    private String caminho;
     
     @Column(nullable = false)
-    private String imgLink;
+    private String url;    
 }
