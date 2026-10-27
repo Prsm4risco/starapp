@@ -34,9 +34,10 @@ public class GaleriaController {
     @PostMapping
     public ResponseEntity<Galeria> upload(@RequestParam("galeria") MultipartFile Galeria) throws IOException {
         Galeria resultado = GaleriaService.salvar(Galeria);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
     }
-
+    
     @GetMapping
     public ResponseEntity<List<Galeria>> listar() {
         List<Galeria> Galerias = GaleriaService.listar();
@@ -46,18 +47,12 @@ public class GaleriaController {
     @GetMapping("/{id}")
     public ResponseEntity<Galeria> buscarPorId(@PathVariable Long id) {
         Galeria Galeria = GaleriaService.buscarPorId(id);
-        if (Galeria == null) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(Galeria);
-    }
+    }    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) throws IOException {
-        boolean excluido = GaleriaService.excluir(id);
-        if (!excluido) {
-            return ResponseEntity.notFound().build();
-        }
+        GaleriaService.excluir(id);
         return ResponseEntity.noContent().build();
-    }
-}
+    }     
+}   

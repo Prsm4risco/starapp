@@ -1,23 +1,18 @@
 package com.cefetmg.starapp.service;
 
+
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import com.cefetmg.starapp.entity.Galeria;
-import com.cefetmg.starapp.exception.BusinessException;
-import com.cefetmg.starapp.exception.ResourceNotFoundException;
 import com.cefetmg.starapp.repository.GaleriaRepository;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 
 @Service
 public class GaleriaService {
@@ -25,42 +20,26 @@ public class GaleriaService {
     @Autowired
     private GaleriaRepository GaleriaRepository;
 
-    @Value("${app.upload.dir}")
-    private String diretorioUpload;
+    @Autowired
+    private Cloudinary cloudinary;
 
-    @Value("${app.upload.url}")
-    private String urlGaleria;   
-    
     public Galeria salvar(MultipartFile Galeria) throws IOException {
-
-        Path diretorio = Paths.get(diretorioUpload);
-
-        if (!Files.exists(diretorio)) {
-            Files.createDirectories(diretorio);
-        }
 
         String nomeOriginal = Galeria.getOriginalFilename();
 
-        String extensao = "";
+        Map resultadoUpload = cloudinary.uploader().upload(Galeria.getBytes(), ObjectUtils.asMap("folder", "api-upload",  "resource_type", "auto"));
 
-        if (nomeOriginal != null && nomeOriginal.contains(".")) {
-            extensao = nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
-        }
-
-        String nomeArmazenado = UUID.randomUUID().toString() + extensao;
-
-        Path destino = diretorio.resolve(nomeArmazenado);
-
-        Files.copy(Galeria.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+        String publicId = resultadoUpload.get("public_id").toString();
+        String url = resultadoUpload.get("secure_url").toString();
 
         Galeria entidade = new Galeria();
 
         entidade.setNomeOriginal(nomeOriginal);
-        entidade.setNomeArmazenado(nomeArmazenado);
+        entidade.setNomeArmazenado(publicId);
         entidade.setTipo(Galeria.getContentType());
         entidade.setTamanho(Galeria.getSize());
-        entidade.setCaminho(destino.toString());
-        entidade.setUrl(urlGaleria + nomeArmazenado);
+        entidade.setCaminho(publicId);
+        entidade.setUrl(url);
 
         return GaleriaRepository.save(entidade);
     }
@@ -73,18 +52,9 @@ public class GaleriaService {
         return GaleriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Galeria não encontrado."));
     }
 
-    public boolean excluir(Long id) throws IOException {
-
+    public void excluir(Long id) throws IOException {
         Galeria Galeria = GaleriaRepository.findById(id).orElseThrow(() -> new RuntimeException("Galeria não encontrado."));
-
-        if (Galeria == null) {
-            return false;
-        }
-
-        Path caminhoGaleria = Paths.get(Galeria.getCaminho());
-        Files.deleteIfExists(caminhoGaleria);
+        cloudinary.uploader().destroy(Galeria.getCaminho(), ObjectUtils.asMap("resource_type", "image"));
         GaleriaRepository.delete(Galeria);
-
-        return true;
     }
 }
