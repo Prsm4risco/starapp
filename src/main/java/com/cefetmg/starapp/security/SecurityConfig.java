@@ -52,6 +52,9 @@ public class SecurityConfig {
 			
 			// Verificação de login
 			.requestMatchers(HttpMethod.GET, "/usuarios/existe").permitAll()
+			
+			// Visualização Galeria
+			.requestMatchers(HttpMethod.GET, "/galeria").permitAll()
 
 			// Dados do usuário
 			.requestMatchers(HttpMethod.GET, "/usuarios/**").hasAnyAuthority("MOD", "USER")
@@ -61,6 +64,9 @@ public class SecurityConfig {
 
 			// Consulta de equipes
 			.requestMatchers(HttpMethod.POST, "/Postagens").hasAnyAuthority("MOD")
+			
+			// Visualização Galeria
+			.requestMatchers(HttpMethod.POST, "/galeria").hasAnyAuthority("MOD")
 
 			// Consulta de equipes
 			.requestMatchers(HttpMethod.POST, "/comentarios").hasAnyAuthority("MOD", "USER")
@@ -75,8 +81,6 @@ public class SecurityConfig {
 			.requestMatchers("/comentarios/**").hasAuthority("USER")
 
 			// Demais recursos
-			.requestMatchers("/galeria").permitAll()
-			.requestMatchers("/galeria/**").permitAll()
 			.anyRequest().authenticated())
 
 			.exceptionHandling(exception -> exception
