@@ -52,33 +52,24 @@ public class SecurityConfig {
 			
 			// Verificação de login
 			.requestMatchers(HttpMethod.GET, "/usuarios/existe").permitAll()
-			
-			// Visualização Galeria
-			.requestMatchers(HttpMethod.GET, "/galeria").permitAll()
 
 			// Dados do usuário
 			.requestMatchers(HttpMethod.GET, "/usuarios/**").hasAnyAuthority("MOD", "USER")
 
 			// Alteração de senha
 			.requestMatchers(HttpMethod.PATCH, "/usuarios/**").hasAnyAuthority("MOD", "USER")
-
-			// Consulta de equipes
-			.requestMatchers(HttpMethod.POST, "/Postagens").hasAnyAuthority("MOD")
 			
 			// Visualização Galeria
 			.requestMatchers(HttpMethod.POST, "/galeria").hasAnyAuthority("MOD")
+			.requestMatchers(HttpMethod.GET, "/galeria").permitAll()
 
-			// Consulta de equipes
+			.requestMatchers(HttpMethod.POST, "/Postagens").hasAnyAuthority("MOD")
+			.requestMatchers(HttpMethod.GET, "/Postagens").permitAll()
+
 			.requestMatchers(HttpMethod.POST, "/comentarios").hasAnyAuthority("MOD", "USER")
+			.requestMatchers(HttpMethod.GET, "/comentarios").permitAll()
 
-			// MOD
-			.requestMatchers("/usuarios/**").hasAuthority("MOD")
-			.requestMatchers("/Postagens/**").hasAuthority("MOD")
-			.requestMatchers("/comentarios/**").hasAuthority("MOD")
 
-			// USER
-			.requestMatchers("/Postagens/**").hasAuthority("USER")
-			.requestMatchers("/comentarios/**").hasAuthority("USER")
 
 			// Demais recursos
 			.anyRequest().authenticated())
